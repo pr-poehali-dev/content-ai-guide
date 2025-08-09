@@ -6,10 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 
 const Index = () => {
   const [completedTasks, setCompletedTasks] = useState<number[]>([]);
   const [activeTask, setActiveTask] = useState<number | null>(null);
+  const [product, setProduct] = useState('');
+  const [audience, setAudience] = useState('');
+  const [tone, setTone] = useState('Профессиональный');
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
 
   const tasks = [
     {
@@ -159,6 +164,35 @@ const Index = () => {
 
   const progressPercent = Math.round((completedTasks.length / tasks.length) * 100);
 
+  const generatePrompt = () => {
+    if (!product.trim() || !audience.trim()) {
+      setGeneratedPrompt('Пожалуйста, заполните поля "Товар" и "Целевая аудитория"');
+      return;
+    }
+
+    const toneMap: { [key: string]: string } = {
+      'Профессиональный': 'деловом стиле',
+      'Дружелюбный': 'дружелюбном тоне',
+      'Энергичный': 'энергичном стиле', 
+      'Элегантный': 'элегантном стиле'
+    };
+
+    const prompt = `Создай убедительное описание товара "${product}" для целевой аудитории "${audience}" в ${toneMap[tone]}. 
+
+Структура описания:
+1. Привлекающий заголовок
+2. Ключевые преимущества (3-5 пунктов)
+3. Эмоциональный призыв к действию
+
+Требования:
+- Используй конкретные цифры и факты
+- Добавь социальные доказательства
+- Подчеркни уникальность товара
+- Длина: 150-200 слов`;
+
+    setGeneratedPrompt(prompt);
+  };
+
   const difficultyColors = {
     "Легко": "bg-green-100 text-green-800",
     "Средне": "bg-yellow-100 text-yellow-800", 
@@ -283,6 +317,8 @@ const Index = () => {
                         type="text" 
                         placeholder="Например: Беспроводные наушники"
                         className="w-full p-2 border rounded-md"
+                        value={product}
+                        onChange={(e) => setProduct(e.target.value)}
                       />
                     </div>
                     <div>
@@ -291,18 +327,56 @@ const Index = () => {
                         type="text" 
                         placeholder="Например: Спортсмены 25-40 лет"
                         className="w-full p-2 border rounded-md"
+                        value={audience}
+                        onChange={(e) => setAudience(e.target.value)}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">Тон:</label>
-                      <select className="w-full p-2 border rounded-md">
+                      <select 
+                        className="w-full p-2 border rounded-md"
+                        value={tone}
+                        onChange={(e) => setTone(e.target.value)}
+                      >
                         <option>Профессиональный</option>
                         <option>Дружелюбный</option>
                         <option>Энергичный</option>
                         <option>Элегантный</option>
                       </select>
                     </div>
-                    <Button className="w-full">Генерировать промпт</Button>
+                    <Button className="w-full" onClick={generatePrompt}>
+                      Генерировать промпт
+                    </Button>
+                    
+                    {generatedPrompt && (
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium mb-2">Сгенерированный промпт:</label>
+                        <Textarea 
+                          value={generatedPrompt}
+                          readOnly
+                          className="min-h-[200px] bg-gray-50"
+                          placeholder="Здесь появится сгенерированный промпт..."
+                        />
+                        <div className="flex gap-2 mt-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => navigator.clipboard.writeText(generatedPrompt)}
+                          >
+                            <Icon name="Copy" size={14} className="mr-1" />
+                            Копировать
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setGeneratedPrompt('')}
+                          >
+                            <Icon name="Trash2" size={14} className="mr-1" />
+                            Очистить
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
