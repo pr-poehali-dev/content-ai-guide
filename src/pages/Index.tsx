@@ -371,7 +371,14 @@ const Index = () => {
           <h4 className="font-semibold">Создайте описание товара:</h4>
           <div>
             <label className="block text-sm font-medium mb-1">Название товара*</label>
-            <input type="text" placeholder="Например: iPhone 15 Pro" className="w-full p-2 border rounded-md text-sm" value={inputs.productName || ''} onChange={(e) => updateTaskInput(taskId, 'productName', e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="Например: iPhone 15 Pro" 
+              className="w-full p-2 border rounded-md text-sm" 
+              value={inputs.productName || ''} 
+              onChange={(e) => updateTaskInput(taskId, 'productName', e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Целевая аудитория*</label>
@@ -771,7 +778,7 @@ const Index = () => {
                     {activeTask === task.id && (
                       <div className="mt-4 p-3 bg-gray-50 rounded-md animate-accordion-down">
                         {!taskFeedback[task.id] ? (
-                          <div className="space-y-4">
+                          <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
                             <div className="text-xs text-gray-600 mb-3">
                               💡 <strong>Подсказка:</strong> {task.example}
                             </div>
@@ -790,7 +797,7 @@ const Index = () => {
                             </Button>
                           </div>
                         ) : (
-                          <div className="space-y-3">
+                          <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-between">
                               <p className="text-sm font-medium">Оценка работы:</p>
                               <div className="flex items-center gap-2">
