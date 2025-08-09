@@ -17,6 +17,8 @@ const Index = () => {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [taskInProgress, setTaskInProgress] = useState<number | null>(null);
   const [taskResults, setTaskResults] = useState<{[key: number]: string}>({});
+  const [taskInputs, setTaskInputs] = useState<{[key: number]: any}>({});
+  const [taskFeedback, setTaskFeedback] = useState<{[key: number]: {score: number, feedback: string}}>({});
 
   const tasks = [
     {
@@ -195,80 +197,209 @@ const Index = () => {
     setGeneratedPrompt(prompt);
   };
 
-  const startTask = async (taskId: number) => {
-    setTaskInProgress(taskId);
+  const updateTaskInput = (taskId: number, field: string, value: string) => {
+    setTaskInputs(prev => ({
+      ...prev,
+      [taskId]: { ...prev[taskId], [field]: value }
+    }));
+  };
+
+  const evaluateTask = (taskId: number) => {
+    const inputs = taskInputs[taskId] || {};
+    let score = 0;
+    let feedback = '';
     
-    // Симуляция выполнения задачи
-    const task = tasks.find(t => t.id === taskId);
-    const timeInMs = parseInt(task?.time.replace(' мин', '') || '15') * 100; // ускоренное время для демо
-    
-    // Имитация процесса с обновлениями
-    const steps = [
-      'Анализирую задачу...',
-      'Генерирую контент...',
-      'Оптимизирую результат...',
-      'Завершаю выполнение...'
-    ];
-    
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, timeInMs / steps.length));
-      setTaskResults(prev => ({...prev, [taskId]: steps[i]}));
+    // Оценка задачи 1: Создание описаний товаров
+    if (taskId === 1) {
+      const { productName, targetAudience, keyBenefits, callToAction } = inputs;
+      
+      if (productName?.length > 5) score += 25;
+      if (targetAudience?.length > 10) score += 25;
+      if (keyBenefits?.split('\n').length >= 3) score += 25;
+      if (callToAction?.includes('купи') || callToAction?.includes('заказ') || callToAction?.includes('скидк')) score += 25;
+      
+      if (score >= 75) feedback = '🎉 Отлично! Вы создали убедительное описание товара. Все ключевые элементы присутствуют.';
+      else if (score >= 50) feedback = '👍 Хорошо! Добавьте больше деталей в преимущества и усильте призыв к действию.';
+      else feedback = '📝 Нужно доработать. Убедитесь, что указаны название, аудитория, минимум 3 преимущества и призыв к действию.';
     }
     
-    // Финальный результат
-    const finalResults: {[key: number]: string} = {
-      1: `✨ ГОТОВО! Создано описание товара:
-"Революционный iPhone 15 Pro с титановым корпусом - ваш спутник в мире инноваций! ⚡
-
-🔥 Ключевые преимущества:
-• Титановый корпус - прочность космических технологий
-• Камера Pro класса - профессиональные фото без усилий  
-• A17 Pro чип - производительность нового уровня
-• 48MP основная камера - детализация, которая впечатляет
-
-Присоединитесь к 50+ млн пользователей, которые уже выбрали будущее. Закажите сейчас со скидкой 15%!"`,
+    // Оценка задачи 2: Email-рассылки  
+    else if (taskId === 2) {
+      const { subject, greeting, mainMessage, ctaButton } = inputs;
       
-      2: `📧 EMAIL-РАССЫЛКА СОЗДАНА:
-Тема: "Анна, ваша корзина скучает без вас! 🛒💔"
-
-Привет, Анна!
-
-Мы заметили, что вы оставили несколько отличных товаров в корзине. Не упустите их!
-
-🎯 Ваши избранные товары:
-• Беспроводные наушники Sony - только сегодня -25%
-• Умные часы Apple Watch - последние 3 шт.
-
-⏰ Успейте до завтра! Скидка действует ограниченное время.
-
-[ОФОРМИТЬ ЗАКАЗ СО СКИДКОЙ]
-
-С любовью, команда TechStore ❤️`,
+      if (subject?.length > 5 && subject?.length < 50) score += 25;
+      if (greeting?.includes('привет') || greeting?.includes('здравствуй')) score += 25;
+      if (mainMessage?.length > 20) score += 25;
+      if (ctaButton?.length > 3) score += 25;
       
-      3: `💡 100 ИДЕЙ КОНТЕНТА СГЕНЕРИРОВАНО:
-
-📱 Посты для соцсетей:
-1. "Покажите рабочее место вашей мечты"
-2. "Опрос: Кофе или чай для продуктивности?"
-3. "История успеха: От 0 до первой продажи"
-4. "Лайфхак дня: Как сэкономить 2 часа"
-5. "За кулисами: День из жизни основателя"
-
-📊 Интерактив:
-6. "Угадайте: до/после нашего продукта"
-7. "Викторина: Насколько вы эксперт?"
-8. "Челлендж 30 дней с нашим продуктом"
-
-И еще 92 идеи готовы! 🚀`
-    };
+      if (score >= 75) feedback = '💌 Превосходно! Email имеет все элементы успешной рассылки.';
+      else if (score >= 50) feedback = '📧 Неплохо! Поработайте над темой письма и основным сообщением.';
+      else feedback = '✉️ Требуется доработка. Проверьте все поля и сделайте контент более персональным.';
+    }
     
-    setTaskResults(prev => ({...prev, [taskId]: finalResults[taskId] || `✅ Задача "${task?.title}" выполнена успешно!`}));
-    setTaskInProgress(null);
+    // Оценка задачи 3: Генерация идей контента
+    else if (taskId === 3) {
+      const { contentTheme, ideaList, targetPlatform } = inputs;
+      
+      if (contentTheme?.length > 5) score += 25;
+      if (ideaList?.split('\n').length >= 5) score += 25;
+      if (targetPlatform) score += 25;
+      if (ideaList?.includes('опрос') || ideaList?.includes('конкурс') || ideaList?.includes('история')) score += 25;
+      
+      if (score >= 75) feedback = '🚀 Фантастично! Вы генерируете разнообразные и интересные идеи контента.';
+      else if (score >= 50) feedback = '💡 Хорошее начало! Добавьте больше интерактивных идей и конкретики.';
+      else feedback = '🎯 Нужно больше креатива. Придумайте минимум 5 разных идей для выбранной платформы.';
+    }
     
-    // Автоматически отмечаем задачу как выполненную
-    setTimeout(() => {
-      toggleTaskComplete(taskId);
-    }, 1000);
+    setTaskFeedback(prev => ({ ...prev, [taskId]: { score, feedback } }));
+    
+    if (score >= 75) {
+      setTimeout(() => toggleTaskComplete(taskId), 1000);
+    }
+  };
+
+  const getTaskForm = (taskId: number) => {
+    const inputs = taskInputs[taskId] || {};
+    
+    if (taskId === 1) {
+      return (
+        <div className="space-y-4">
+          <h4 className="font-semibold">Создайте описание товара:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Название товара*</label>
+            <input 
+              type="text"
+              placeholder="Например: iPhone 15 Pro"
+              className="w-full p-2 border rounded-md text-sm"
+              value={inputs.productName || ''}
+              onChange={(e) => updateTaskInput(taskId, 'productName', e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Целевая аудитория*</label>
+            <input 
+              type="text"
+              placeholder="Например: Молодые профессионалы 25-35 лет"
+              className="w-full p-2 border rounded-md text-sm"
+              value={inputs.targetAudience || ''}
+              onChange={(e) => updateTaskInput(taskId, 'targetAudience', e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ключевые преимущества* (по одному на строку)</label>
+            <Textarea 
+              placeholder="Например:&#10;Титановый корпус&#10;Камера Pro класса&#10;Долгий срок службы батареи"
+              className="w-full text-sm min-h-[80px]"
+              value={inputs.keyBenefits || ''}
+              onChange={(e) => updateTaskInput(taskId, 'keyBenefits', e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Призыв к действию*</label>
+            <input 
+              type="text"
+              placeholder="Например: Закажите сейчас со скидкой 15%!"
+              className="w-full p-2 border rounded-md text-sm"
+              value={inputs.callToAction || ''}
+              onChange={(e) => updateTaskInput(taskId, 'callToAction', e.target.value)}
+            />
+          </div>
+        </div>
+      );
+    }
+    
+    if (taskId === 2) {
+      return (
+        <div className="space-y-4">
+          <h4 className="font-semibold">Создайте email-рассылку:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тема письма* (до 50 символов)</label>
+            <input 
+              type="text"
+              placeholder="Например: Анна, ваша скидка ждёт!"
+              className="w-full p-2 border rounded-md text-sm"
+              value={inputs.subject || ''}
+              onChange={(e) => updateTaskInput(taskId, 'subject', e.target.value)}
+            />
+            <span className="text-xs text-gray-500">{inputs.subject?.length || 0}/50</span>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Приветствие*</label>
+            <input 
+              type="text"
+              placeholder="Например: Привет, Анна!"
+              className="w-full p-2 border rounded-md text-sm"
+              value={inputs.greeting || ''}
+              onChange={(e) => updateTaskInput(taskId, 'greeting', e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Основное сообщение*</label>
+            <Textarea 
+              placeholder="Напишите основной текст письма..."
+              className="w-full text-sm min-h-[80px]"
+              value={inputs.mainMessage || ''}
+              onChange={(e) => updateTaskInput(taskId, 'mainMessage', e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Кнопка действия*</label>
+            <input 
+              type="text"
+              placeholder="Например: ПОЛУЧИТЬ СКИДКУ"
+              className="w-full p-2 border rounded-md text-sm"
+              value={inputs.ctaButton || ''}
+              onChange={(e) => updateTaskInput(taskId, 'ctaButton', e.target.value)}
+            />
+          </div>
+        </div>
+      );
+    }
+    
+    if (taskId === 3) {
+      return (
+        <div className="space-y-4">
+          <h4 className="font-semibold">Генерируйте идеи контента:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тема/Ниша*</label>
+            <input 
+              type="text"
+              placeholder="Например: Фитнес и здоровье"
+              className="w-full p-2 border rounded-md text-sm"
+              value={inputs.contentTheme || ''}
+              onChange={(e) => updateTaskInput(taskId, 'contentTheme', e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Платформа*</label>
+            <select 
+              className="w-full p-2 border rounded-md text-sm"
+              value={inputs.targetPlatform || ''}
+              onChange={(e) => updateTaskInput(taskId, 'targetPlatform', e.target.value)}
+            >
+              <option value="">Выберите платформу</option>
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="youtube">YouTube</option>
+              <option value="telegram">Telegram</option>
+              <option value="vk">ВКонтакте</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Идеи контента* (минимум 5 идей)</label>
+            <Textarea 
+              placeholder="Например:&#10;1. Опрос: ваша любимая тренировка&#10;2. История трансформации клиента&#10;3. 5 мифов о питании&#10;4. Челлендж 30 дней&#10;5. Интервью с экспертом"
+              className="w-full text-sm min-h-[120px]"
+              value={inputs.ideaList || ''}
+              onChange={(e) => updateTaskInput(taskId, 'ideaList', e.target.value)}
+            />
+            <span className="text-xs text-gray-500">Идей: {inputs.ideaList?.split('\n').filter(line => line.trim()).length || 0}</span>
+          </div>
+        </div>
+      );
+    }
+    
+    return <div>Форма для этой задачи в разработке...</div>;
   };
 
   const difficultyColors = {
@@ -364,61 +495,87 @@ const Index = () => {
 
                     {activeTask === task.id && (
                       <div className="mt-4 p-3 bg-gray-50 rounded-md animate-accordion-down">
-                        {!taskResults[task.id] ? (
-                          <>
-                            <p className="text-sm font-medium mb-2">Пример результата:</p>
-                            <p className="text-sm italic text-gray-700">"{task.example}"</p>
+                        {!taskFeedback[task.id] ? (
+                          <div className="space-y-4">
+                            <div className="text-xs text-gray-600 mb-3">
+                              💡 <strong>Подсказка:</strong> {task.example}
+                            </div>
+                            
+                            {getTaskForm(task.id)}
+                            
                             <Button 
                               size="sm" 
-                              className="mt-3 w-full"
+                              className="w-full mt-4"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                startTask(task.id);
+                                evaluateTask(task.id);
                               }}
-                              disabled={taskInProgress === task.id}
                             >
-                              {taskInProgress === task.id ? (
-                                <div className="flex items-center gap-2">
-                                  <Icon name="Loader2" size={14} className="animate-spin" />
-                                  Выполняется...
-                                </div>
-                              ) : (
-                                'Начать задачу'
-                              )}
+                              Проверить работу
                             </Button>
-                          </>
+                          </div>
                         ) : (
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium">Результат выполнения:</p>
-                              <Badge className="bg-green-100 text-green-800">Готово</Badge>
+                              <p className="text-sm font-medium">Оценка работы:</p>
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  className={
+                                    taskFeedback[task.id].score >= 75 ? 'bg-green-100 text-green-800' :
+                                    taskFeedback[task.id].score >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                  }
+                                >
+                                  {taskFeedback[task.id].score}/100
+                                </Badge>
+                              </div>
                             </div>
-                            <div className="bg-white p-3 rounded border text-sm whitespace-pre-line">
-                              {taskResults[task.id]}
+                            
+                            <div className="bg-white p-3 rounded border text-sm">
+                              {taskFeedback[task.id].feedback}
                             </div>
+                            
+                            {taskFeedback[task.id].score >= 75 && (
+                              <div className="bg-green-50 border border-green-200 p-3 rounded-md">
+                                <div className="flex items-center gap-2">
+                                  <Icon name="Trophy" size={16} className="text-green-600" />
+                                  <span className="text-sm font-medium text-green-800">
+                                    Поздравляем! Задача выполнена успешно!
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                            
                             <div className="flex gap-2">
                               <Button 
                                 size="sm" 
                                 variant="outline"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigator.clipboard.writeText(taskResults[task.id]);
-                                }}
-                              >
-                                <Icon name="Copy" size={12} className="mr-1" />
-                                Копировать
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  startTask(task.id);
+                                  setTaskFeedback(prev => {
+                                    const newFeedback = { ...prev };
+                                    delete newFeedback[task.id];
+                                    return newFeedback;
+                                  });
                                 }}
                               >
                                 <Icon name="RefreshCw" size={12} className="mr-1" />
-                                Пересоздать
+                                Попробовать снова
                               </Button>
+                              {taskFeedback[task.id].score >= 75 && (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const result = Object.values(taskInputs[task.id] || {}).join('\n\n');
+                                    navigator.clipboard.writeText(result);
+                                  }}
+                                >
+                                  <Icon name="Copy" size={12} className="mr-1" />
+                                  Копировать результат
+                                </Button>
+                              )}
                             </div>
                           </div>
                         )}
