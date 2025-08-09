@@ -209,46 +209,150 @@ const Index = () => {
     let score = 0;
     let feedback = '';
     
-    // Оценка задачи 1: Создание описаний товаров
-    if (taskId === 1) {
-      const { productName, targetAudience, keyBenefits, callToAction } = inputs;
-      
-      if (productName?.length > 5) score += 25;
-      if (targetAudience?.length > 10) score += 25;
-      if (keyBenefits?.split('\n').length >= 3) score += 25;
-      if (callToAction?.includes('купи') || callToAction?.includes('заказ') || callToAction?.includes('скидк')) score += 25;
-      
-      if (score >= 75) feedback = '🎉 Отлично! Вы создали убедительное описание товара. Все ключевые элементы присутствуют.';
-      else if (score >= 50) feedback = '👍 Хорошо! Добавьте больше деталей в преимущества и усильте призыв к действию.';
-      else feedback = '📝 Нужно доработать. Убедитесь, что указаны название, аудитория, минимум 3 преимущества и призыв к действию.';
-    }
+    const evaluationRules: {[key: number]: () => void} = {
+      1: () => {
+        const { productName, targetAudience, keyBenefits } = inputs;
+        if (productName?.length > 3) score += 35;
+        if (targetAudience?.length > 8) score += 35;
+        if (keyBenefits?.length > 20) score += 30;
+        feedback = score >= 75 ? '🎉 Отличное описание товара! Все элементы присутствуют.' :
+                  score >= 50 ? '👍 Хорошо! Добавьте больше деталей.' :
+                  '📝 Заполните все поля подробнее.';
+      },
+      2: () => {
+        const { subject, brand, offer } = inputs;
+        if (subject?.length > 5 && subject?.length < 50) score += 35;
+        if (brand?.length > 2) score += 30;
+        if (offer?.length > 15) score += 35;
+        feedback = score >= 75 ? '💌 Превосходная email-рассылка!' :
+                  score >= 50 ? '📧 Неплохо! Улучшите предложение.' :
+                  '✉️ Доработайте все поля.';
+      },
+      3: () => {
+        const { niche, platform, audience } = inputs;
+        if (niche?.length > 5) score += 35;
+        if (platform) score += 30;
+        if (audience?.length > 8) score += 35;
+        feedback = score >= 75 ? '🚀 Отличные параметры для контента!' :
+                  score >= 50 ? '💡 Хорошо! Уточните аудиторию.' :
+                  '🎯 Заполните все обязательные поля.';
+      },
+      4: () => {
+        const { topic, duration, message } = inputs;
+        if (topic?.length > 5) score += 35;
+        if (duration) score += 30;
+        if (message?.length > 10) score += 35;
+        feedback = score >= 75 ? '🎬 Отличная концепция видео!' :
+                  score >= 50 ? '📹 Хорошо! Уточните сообщение.' :
+                  '🎥 Доработайте концепцию.';
+      },
+      5: () => {
+        const { title, keywords, mainPoints } = inputs;
+        if (title?.length > 10) score += 35;
+        if (keywords?.split(',').length >= 3) score += 30;
+        if (mainPoints?.length > 30) score += 35;
+        feedback = score >= 75 ? '📰 Отличная статья получится!' :
+                  score >= 50 ? '✍️ Хорошо! Добавьте ключевые слова.' :
+                  '📝 Проработайте структуру статьи.';
+      },
+      6: () => {
+        const { theme, targetGroup, idea } = inputs;
+        if (theme?.length > 5) score += 35;
+        if (targetGroup?.length > 5) score += 30;
+        if (idea?.length > 10) score += 35;
+        feedback = score >= 75 ? '😄 Отличная идея для мема!' :
+                  score >= 50 ? '🎭 Неплохо! Доработайте идею.' :
+                  '🤔 Нужна более креативная концепция.';
+      },
+      7: () => {
+        const { industry, competitors, analysisType } = inputs;
+        if (industry?.length > 5) score += 35;
+        if (competitors?.split(',').length >= 2) score += 30;
+        if (analysisType) score += 35;
+        feedback = score >= 75 ? '🔍 Отличный план анализа!' :
+                  score >= 50 ? '📊 Хорошо! Добавьте конкурентов.' :
+                  '📈 Уточните параметры анализа.';
+      },
+      8: () => {
+        const { businessType, functions, botTone } = inputs;
+        if (businessType?.length > 5) score += 35;
+        if (functions?.length > 20) score += 30;
+        if (botTone) score += 35;
+        feedback = score >= 75 ? '🤖 Отличная концепция бота!' :
+                  score >= 50 ? '💬 Хорошо! Опишите функции подробнее.' :
+                  '🛠️ Доработайте техническое задание.';
+      },
+      9: () => {
+        const { service, location, commonQuestions } = inputs;
+        if (service?.length > 5) score += 35;
+        if (location?.length > 3) score += 30;
+        if (commonQuestions?.length > 20) score += 35;
+        feedback = score >= 75 ? '🎙️ Отличная стратегия для голосового поиска!' :
+                  score >= 50 ? '🔊 Хорошо! Добавьте больше вопросов.' :
+                  '📍 Уточните параметры оптимизации.';
+      },
+      10: () => {
+        const { quizTopic, quizGoal, quizNiche } = inputs;
+        if (quizTopic?.length > 8) score += 35;
+        if (quizGoal) score += 30;
+        if (quizNiche?.length > 5) score += 35;
+        feedback = score >= 75 ? '🎯 Отличная концепция квиза!' :
+                  score >= 50 ? '📋 Хорошо! Уточните цель.' :
+                  '❓ Доработайте идею квиза.';
+      },
+      11: () => {
+        const { contentTopic, contentType, emotion } = inputs;
+        if (contentTopic?.length > 5) score += 35;
+        if (contentType) score += 30;
+        if (emotion) score += 35;
+        feedback = score >= 75 ? '✨ Отличные параметры для заголовков!' :
+                  score >= 50 ? '📝 Хорошо! Выберите эмоцию.' :
+                  '💭 Уточните тему контента.';
+      },
+      12: () => {
+        const { infographicTopic, keyData, infographicAudience } = inputs;
+        if (infographicTopic?.length > 8) score += 35;
+        if (keyData?.length > 30) score += 30;
+        if (infographicAudience?.length > 8) score += 35;
+        feedback = score >= 75 ? '📊 Отличная концепция инфографики!' :
+                  score >= 50 ? '📈 Хорошо! Добавьте данные.' :
+                  '📉 Доработайте структуру данных.';
+      },
+      13: () => {
+        const { caseIndustry, problem, result } = inputs;
+        if (caseIndustry?.length > 5) score += 35;
+        if (problem?.length > 10) score += 30;
+        if (result?.length > 10) score += 35;
+        feedback = score >= 75 ? '🏆 Отличная история успеха!' :
+                  score >= 50 ? '📖 Хорошо! Уточните результаты.' :
+                  '📚 Доработайте кейс.';
+      },
+      14: () => {
+        const { podcastName, episodeTopic, podcastFormat } = inputs;
+        if (podcastName?.length > 5) score += 35;
+        if (episodeTopic?.length > 8) score += 30;
+        if (podcastFormat) score += 35;
+        feedback = score >= 75 ? '🎙️ Отличная концепция подкаста!' :
+                  score >= 50 ? '🎧 Хорошо! Уточните тему выпуска.' :
+                  '📻 Доработайте концепцию.';
+      },
+      15: () => {
+        const { businessNiche, platforms, frequency } = inputs;
+        if (businessNiche?.length > 5) score += 35;
+        if (platforms?.split(',').length >= 2) score += 30;
+        if (frequency) score += 35;
+        feedback = score >= 75 ? '⚙️ Отличный план автоматизации!' :
+                  score >= 50 ? '🔄 Хорошо! Добавьте платформы.' :
+                  '📅 Доработайте стратегию публикаций.';
+      }
+    };
     
-    // Оценка задачи 2: Email-рассылки  
-    else if (taskId === 2) {
-      const { subject, greeting, mainMessage, ctaButton } = inputs;
-      
-      if (subject?.length > 5 && subject?.length < 50) score += 25;
-      if (greeting?.includes('привет') || greeting?.includes('здравствуй')) score += 25;
-      if (mainMessage?.length > 20) score += 25;
-      if (ctaButton?.length > 3) score += 25;
-      
-      if (score >= 75) feedback = '💌 Превосходно! Email имеет все элементы успешной рассылки.';
-      else if (score >= 50) feedback = '📧 Неплохо! Поработайте над темой письма и основным сообщением.';
-      else feedback = '✉️ Требуется доработка. Проверьте все поля и сделайте контент более персональным.';
-    }
-    
-    // Оценка задачи 3: Генерация идей контента
-    else if (taskId === 3) {
-      const { contentTheme, ideaList, targetPlatform } = inputs;
-      
-      if (contentTheme?.length > 5) score += 25;
-      if (ideaList?.split('\n').length >= 5) score += 25;
-      if (targetPlatform) score += 25;
-      if (ideaList?.includes('опрос') || ideaList?.includes('конкурс') || ideaList?.includes('история')) score += 25;
-      
-      if (score >= 75) feedback = '🚀 Фантастично! Вы генерируете разнообразные и интересные идеи контента.';
-      else if (score >= 50) feedback = '💡 Хорошее начало! Добавьте больше интерактивных идей и конкретики.';
-      else feedback = '🎯 Нужно больше креатива. Придумайте минимум 5 разных идей для выбранной платформы.';
+    const evaluateFunction = evaluationRules[taskId];
+    if (evaluateFunction) {
+      evaluateFunction();
+    } else {
+      score = 50;
+      feedback = 'Оценка для этой задачи в разработке.';
     }
     
     setTaskFeedback(prev => ({ ...prev, [taskId]: { score, feedback } }));
@@ -261,145 +365,316 @@ const Index = () => {
   const getTaskForm = (taskId: number) => {
     const inputs = taskInputs[taskId] || {};
     
-    if (taskId === 1) {
-      return (
-        <div className="space-y-4">
+    const taskForms: {[key: number]: JSX.Element} = {
+      1: (
+        <div className="space-y-3">
           <h4 className="font-semibold">Создайте описание товара:</h4>
           <div>
             <label className="block text-sm font-medium mb-1">Название товара*</label>
-            <input 
-              type="text"
-              placeholder="Например: iPhone 15 Pro"
-              className="w-full p-2 border rounded-md text-sm"
-              value={inputs.productName || ''}
-              onChange={(e) => updateTaskInput(taskId, 'productName', e.target.value)}
-            />
+            <input type="text" placeholder="Например: iPhone 15 Pro" className="w-full p-2 border rounded-md text-sm" value={inputs.productName || ''} onChange={(e) => updateTaskInput(taskId, 'productName', e.target.value)} />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Целевая аудитория*</label>
-            <input 
-              type="text"
-              placeholder="Например: Молодые профессионалы 25-35 лет"
-              className="w-full p-2 border rounded-md text-sm"
-              value={inputs.targetAudience || ''}
-              onChange={(e) => updateTaskInput(taskId, 'targetAudience', e.target.value)}
-            />
+            <input type="text" placeholder="Например: Молодые профессионалы 25-35 лет" className="w-full p-2 border rounded-md text-sm" value={inputs.targetAudience || ''} onChange={(e) => updateTaskInput(taskId, 'targetAudience', e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Ключевые преимущества* (по одному на строку)</label>
-            <Textarea 
-              placeholder="Например:&#10;Титановый корпус&#10;Камера Pro класса&#10;Долгий срок службы батареи"
-              className="w-full text-sm min-h-[80px]"
-              value={inputs.keyBenefits || ''}
-              onChange={(e) => updateTaskInput(taskId, 'keyBenefits', e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Призыв к действию*</label>
-            <input 
-              type="text"
-              placeholder="Например: Закажите сейчас со скидкой 15%!"
-              className="w-full p-2 border rounded-md text-sm"
-              value={inputs.callToAction || ''}
-              onChange={(e) => updateTaskInput(taskId, 'callToAction', e.target.value)}
-            />
+            <label className="block text-sm font-medium mb-1">Ключевые преимущества*</label>
+            <Textarea placeholder="Например: Титановый корпус, Камера Pro класса..." className="w-full text-sm min-h-[60px]" value={inputs.keyBenefits || ''} onChange={(e) => updateTaskInput(taskId, 'keyBenefits', e.target.value)} />
           </div>
         </div>
-      );
-    }
-    
-    if (taskId === 2) {
-      return (
-        <div className="space-y-4">
+      ),
+      2: (
+        <div className="space-y-3">
           <h4 className="font-semibold">Создайте email-рассылку:</h4>
           <div>
-            <label className="block text-sm font-medium mb-1">Тема письма* (до 50 символов)</label>
-            <input 
-              type="text"
-              placeholder="Например: Анна, ваша скидка ждёт!"
-              className="w-full p-2 border rounded-md text-sm"
-              value={inputs.subject || ''}
-              onChange={(e) => updateTaskInput(taskId, 'subject', e.target.value)}
-            />
-            <span className="text-xs text-gray-500">{inputs.subject?.length || 0}/50</span>
+            <label className="block text-sm font-medium mb-1">Тема письма*</label>
+            <input type="text" placeholder="Например: Анна, ваша скидка ждёт!" className="w-full p-2 border rounded-md text-sm" value={inputs.subject || ''} onChange={(e) => updateTaskInput(taskId, 'subject', e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Приветствие*</label>
-            <input 
-              type="text"
-              placeholder="Например: Привет, Анна!"
-              className="w-full p-2 border rounded-md text-sm"
-              value={inputs.greeting || ''}
-              onChange={(e) => updateTaskInput(taskId, 'greeting', e.target.value)}
-            />
+            <label className="block text-sm font-medium mb-1">Ваш бренд/компания*</label>
+            <input type="text" placeholder="Например: TechStore" className="w-full p-2 border rounded-md text-sm" value={inputs.brand || ''} onChange={(e) => updateTaskInput(taskId, 'brand', e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Основное сообщение*</label>
-            <Textarea 
-              placeholder="Напишите основной текст письма..."
-              className="w-full text-sm min-h-[80px]"
-              value={inputs.mainMessage || ''}
-              onChange={(e) => updateTaskInput(taskId, 'mainMessage', e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Кнопка действия*</label>
-            <input 
-              type="text"
-              placeholder="Например: ПОЛУЧИТЬ СКИДКУ"
-              className="w-full p-2 border rounded-md text-sm"
-              value={inputs.ctaButton || ''}
-              onChange={(e) => updateTaskInput(taskId, 'ctaButton', e.target.value)}
-            />
+            <label className="block text-sm font-medium mb-1">Основное предложение*</label>
+            <Textarea placeholder="Что предлагаете клиенту..." className="w-full text-sm min-h-[60px]" value={inputs.offer || ''} onChange={(e) => updateTaskInput(taskId, 'offer', e.target.value)} />
           </div>
         </div>
-      );
-    }
-    
-    if (taskId === 3) {
-      return (
-        <div className="space-y-4">
+      ),
+      3: (
+        <div className="space-y-3">
           <h4 className="font-semibold">Генерируйте идеи контента:</h4>
           <div>
-            <label className="block text-sm font-medium mb-1">Тема/Ниша*</label>
-            <input 
-              type="text"
-              placeholder="Например: Фитнес и здоровье"
-              className="w-full p-2 border rounded-md text-sm"
-              value={inputs.contentTheme || ''}
-              onChange={(e) => updateTaskInput(taskId, 'contentTheme', e.target.value)}
-            />
+            <label className="block text-sm font-medium mb-1">Ваша ниша*</label>
+            <input type="text" placeholder="Например: Фитнес и здоровье" className="w-full p-2 border rounded-md text-sm" value={inputs.niche || ''} onChange={(e) => updateTaskInput(taskId, 'niche', e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Платформа*</label>
-            <select 
-              className="w-full p-2 border rounded-md text-sm"
-              value={inputs.targetPlatform || ''}
-              onChange={(e) => updateTaskInput(taskId, 'targetPlatform', e.target.value)}
-            >
+            <label className="block text-sm font-medium mb-1">Основная платформа*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.platform || ''} onChange={(e) => updateTaskInput(taskId, 'platform', e.target.value)}>
               <option value="">Выберите платформу</option>
               <option value="instagram">Instagram</option>
               <option value="tiktok">TikTok</option>
               <option value="youtube">YouTube</option>
               <option value="telegram">Telegram</option>
-              <option value="vk">ВКонтакте</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Идеи контента* (минимум 5 идей)</label>
-            <Textarea 
-              placeholder="Например:&#10;1. Опрос: ваша любимая тренировка&#10;2. История трансформации клиента&#10;3. 5 мифов о питании&#10;4. Челлендж 30 дней&#10;5. Интервью с экспертом"
-              className="w-full text-sm min-h-[120px]"
-              value={inputs.ideaList || ''}
-              onChange={(e) => updateTaskInput(taskId, 'ideaList', e.target.value)}
-            />
-            <span className="text-xs text-gray-500">Идей: {inputs.ideaList?.split('\n').filter(line => line.trim()).length || 0}</span>
+            <label className="block text-sm font-medium mb-1">Целевая аудитория*</label>
+            <input type="text" placeholder="Например: Женщины 25-40 лет" className="w-full p-2 border rounded-md text-sm" value={inputs.audience || ''} onChange={(e) => updateTaskInput(taskId, 'audience', e.target.value)} />
           </div>
         </div>
-      );
-    }
+      ),
+      4: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Создайте сценарий видео:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тема видео*</label>
+            <input type="text" placeholder="Например: 5 секретов продуктивности" className="w-full p-2 border rounded-md text-sm" value={inputs.topic || ''} onChange={(e) => updateTaskInput(taskId, 'topic', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Длительность*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.duration || ''} onChange={(e) => updateTaskInput(taskId, 'duration', e.target.value)}>
+              <option value="">Выберите длительность</option>
+              <option value="15-30 сек">15-30 секунд (TikTok/Reels)</option>
+              <option value="1-3 мин">1-3 минуты (YouTube Shorts)</option>
+              <option value="5-10 мин">5-10 минут (YouTube)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ключевое сообщение*</label>
+            <input type="text" placeholder="Что хотите донести до зрителей?" className="w-full p-2 border rounded-md text-sm" value={inputs.message || ''} onChange={(e) => updateTaskInput(taskId, 'message', e.target.value)} />
+          </div>
+        </div>
+      ),
+      5: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Напишите статью для блога:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Заголовок статьи*</label>
+            <input type="text" placeholder="Например: 7 способов увеличить продажи в 2024" className="w-full p-2 border rounded-md text-sm" value={inputs.title || ''} onChange={(e) => updateTaskInput(taskId, 'title', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ключевые слова для SEO*</label>
+            <input type="text" placeholder="Через запятую: продажи, маркетинг, бизнес" className="w-full p-2 border rounded-md text-sm" value={inputs.keywords || ''} onChange={(e) => updateTaskInput(taskId, 'keywords', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Основные тезисы*</label>
+            <Textarea placeholder="Перечислите ключевые идеи статьи..." className="w-full text-sm min-h-[60px]" value={inputs.mainPoints || ''} onChange={(e) => updateTaskInput(taskId, 'mainPoints', e.target.value)} />
+          </div>
+        </div>
+      ),
+      6: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Создайте мем/визуальный контент:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тема мема*</label>
+            <input type="text" placeholder="Например: Удаленная работа vs офис" className="w-full p-2 border rounded-md text-sm" value={inputs.theme || ''} onChange={(e) => updateTaskInput(taskId, 'theme', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Целевая аудитория*</label>
+            <input type="text" placeholder="Например: IT-специалисты" className="w-full p-2 border rounded-md text-sm" value={inputs.targetGroup || ''} onChange={(e) => updateTaskInput(taskId, 'targetGroup', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Основная идея/шутка*</label>
+            <input type="text" placeholder="В чем суть мема?" className="w-full p-2 border rounded-md text-sm" value={inputs.idea || ''} onChange={(e) => updateTaskInput(taskId, 'idea', e.target.value)} />
+          </div>
+        </div>
+      ),
+      7: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Анализ конкурентов:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ваша ниша*</label>
+            <input type="text" placeholder="Например: Онлайн-образование" className="w-full p-2 border rounded-md text-sm" value={inputs.industry || ''} onChange={(e) => updateTaskInput(taskId, 'industry', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Главные конкуренты*</label>
+            <input type="text" placeholder="Перечислите через запятую" className="w-full p-2 border rounded-md text-sm" value={inputs.competitors || ''} onChange={(e) => updateTaskInput(taskId, 'competitors', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Что хотите проанализировать*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.analysisType || ''} onChange={(e) => updateTaskInput(taskId, 'analysisType', e.target.value)}>
+              <option value="">Выберите тип анализа</option>
+              <option value="content">Контент-стратегия</option>
+              <option value="pricing">Ценообразование</option>
+              <option value="social">Социальные сети</option>
+              <option value="seo">SEO-стратегия</option>
+            </select>
+          </div>
+        </div>
+      ),
+      8: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Создайте чат-бота:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Сфера применения*</label>
+            <input type="text" placeholder="Например: Интернет-магазин одежды" className="w-full p-2 border rounded-md text-sm" value={inputs.businessType || ''} onChange={(e) => updateTaskInput(taskId, 'businessType', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Основные функции бота*</label>
+            <Textarea placeholder="Например: консультация, прием заказов, FAQ..." className="w-full text-sm min-h-[60px]" value={inputs.functions || ''} onChange={(e) => updateTaskInput(taskId, 'functions', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тон общения*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.botTone || ''} onChange={(e) => updateTaskInput(taskId, 'botTone', e.target.value)}>
+              <option value="">Выберите тон</option>
+              <option value="friendly">Дружелюбный</option>
+              <option value="professional">Профессиональный</option>
+              <option value="casual">Неформальный</option>
+            </select>
+          </div>
+        </div>
+      ),
+      9: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Оптимизация для голосового поиска:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Основная услуга/товар*</label>
+            <input type="text" placeholder="Например: Доставка еды" className="w-full p-2 border rounded-md text-sm" value={inputs.service || ''} onChange={(e) => updateTaskInput(taskId, 'service', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Целевой регион*</label>
+            <input type="text" placeholder="Например: Москва" className="w-full p-2 border rounded-md text-sm" value={inputs.location || ''} onChange={(e) => updateTaskInput(taskId, 'location', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Частые вопросы клиентов*</label>
+            <Textarea placeholder="Какие вопросы задают ваши клиенты?" className="w-full text-sm min-h-[60px]" value={inputs.commonQuestions || ''} onChange={(e) => updateTaskInput(taskId, 'commonQuestions', e.target.value)} />
+          </div>
+        </div>
+      ),
+      10: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Создайте квиз/опрос:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тема квиза*</label>
+            <input type="text" placeholder="Например: Какой тип питания вам подходит?" className="w-full p-2 border rounded-md text-sm" value={inputs.quizTopic || ''} onChange={(e) => updateTaskInput(taskId, 'quizTopic', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Цель квиза*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.quizGoal || ''} onChange={(e) => updateTaskInput(taskId, 'quizGoal', e.target.value)}>
+              <option value="">Выберите цель</option>
+              <option value="lead-generation">Сбор контактов</option>
+              <option value="engagement">Увеличение вовлеченности</option>
+              <option value="education">Обучение аудитории</option>
+              <option value="product-recommendation">Рекомендация товаров</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ваша ниша*</label>
+            <input type="text" placeholder="Например: Здоровое питание" className="w-full p-2 border rounded-md text-sm" value={inputs.quizNiche || ''} onChange={(e) => updateTaskInput(taskId, 'quizNiche', e.target.value)} />
+          </div>
+        </div>
+      ),
+      11: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Генерация заголовков:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тема контента*</label>
+            <input type="text" placeholder="Например: Инвестиции для начинающих" className="w-full p-2 border rounded-md text-sm" value={inputs.contentTopic || ''} onChange={(e) => updateTaskInput(taskId, 'contentTopic', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тип контента*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.contentType || ''} onChange={(e) => updateTaskInput(taskId, 'contentType', e.target.value)}>
+              <option value="">Выберите тип</option>
+              <option value="article">Статья</option>
+              <option value="video">Видео</option>
+              <option value="social-post">Пост в соцсетях</option>
+              <option value="email">Email-рассылка</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Желаемая эмоция*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.emotion || ''} onChange={(e) => updateTaskInput(taskId, 'emotion', e.target.value)}>
+              <option value="">Выберите эмоцию</option>
+              <option value="curiosity">Любопытство</option>
+              <option value="urgency">Срочность</option>
+              <option value="benefit">Выгода</option>
+              <option value="surprise">Удивление</option>
+            </select>
+          </div>
+        </div>
+      ),
+      12: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Создайте инфографику:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тема инфографики*</label>
+            <input type="text" placeholder="Например: Статистика e-commerce 2024" className="w-full p-2 border rounded-md text-sm" value={inputs.infographicTopic || ''} onChange={(e) => updateTaskInput(taskId, 'infographicTopic', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ключевые данные*</label>
+            <Textarea placeholder="Перечислите цифры, факты, статистику..." className="w-full text-sm min-h-[60px]" value={inputs.keyData || ''} onChange={(e) => updateTaskInput(taskId, 'keyData', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Целевая аудитория*</label>
+            <input type="text" placeholder="Например: Владельцы интернет-магазинов" className="w-full p-2 border rounded-md text-sm" value={inputs.infographicAudience || ''} onChange={(e) => updateTaskInput(taskId, 'infographicAudience', e.target.value)} />
+          </div>
+        </div>
+      ),
+      13: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Создайте кейс/историю успеха:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Сфера деятельности*</label>
+            <input type="text" placeholder="Например: Маркетинговое агентство" className="w-full p-2 border rounded-md text-sm" value={inputs.caseIndustry || ''} onChange={(e) => updateTaskInput(taskId, 'caseIndustry', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Проблема клиента*</label>
+            <input type="text" placeholder="С какой проблемой обратился клиент?" className="w-full p-2 border rounded-md text-sm" value={inputs.problem || ''} onChange={(e) => updateTaskInput(taskId, 'problem', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Достигнутый результат*</label>
+            <input type="text" placeholder="Например: Увеличение продаж на 300%" className="w-full p-2 border rounded-md text-sm" value={inputs.result || ''} onChange={(e) => updateTaskInput(taskId, 'result', e.target.value)} />
+          </div>
+        </div>
+      ),
+      14: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Создайте подкаст:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Название подкаста*</label>
+            <input type="text" placeholder="Например: Секреты успешного бизнеса" className="w-full p-2 border rounded-md text-sm" value={inputs.podcastName || ''} onChange={(e) => updateTaskInput(taskId, 'podcastName', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Тема выпуска*</label>
+            <input type="text" placeholder="Например: Как масштабировать стартап" className="w-full p-2 border rounded-md text-sm" value={inputs.episodeTopic || ''} onChange={(e) => updateTaskInput(taskId, 'episodeTopic', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Формат*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.podcastFormat || ''} onChange={(e) => updateTaskInput(taskId, 'podcastFormat', e.target.value)}>
+              <option value="">Выберите формат</option>
+              <option value="solo">Сольный выпуск</option>
+              <option value="interview">Интервью с экспертом</option>
+              <option value="panel">Панельная дискуссия</option>
+            </select>
+          </div>
+        </div>
+      ),
+      15: (
+        <div className="space-y-3">
+          <h4 className="font-semibold">Автоматизация публикации:</h4>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ваша ниша*</label>
+            <input type="text" placeholder="Например: Фитнес-тренер" className="w-full p-2 border rounded-md text-sm" value={inputs.businessNiche || ''} onChange={(e) => updateTaskInput(taskId, 'businessNiche', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Основные платформы*</label>
+            <input type="text" placeholder="Например: Instagram, Facebook, Telegram" className="w-full p-2 border rounded-md text-sm" value={inputs.platforms || ''} onChange={(e) => updateTaskInput(taskId, 'platforms', e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Частота публикаций*</label>
+            <select className="w-full p-2 border rounded-md text-sm" value={inputs.frequency || ''} onChange={(e) => updateTaskInput(taskId, 'frequency', e.target.value)}>
+              <option value="">Выберите частоту</option>
+              <option value="daily">Каждый день</option>
+              <option value="3-times-week">3 раза в неделю</option>
+              <option value="weekly">Еженедельно</option>
+              <option value="bi-weekly">Раз в две недели</option>
+            </select>
+          </div>
+        </div>
+      )
+    };
     
-    return <div>Форма для этой задачи в разработке...</div>;
+    return taskForms[taskId] || <div>Форма для этой задачи в разработке...</div>;
   };
 
   const difficultyColors = {
