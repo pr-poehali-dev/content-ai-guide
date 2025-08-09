@@ -15,6 +15,8 @@ const Index = () => {
   const [audience, setAudience] = useState('');
   const [tone, setTone] = useState('Профессиональный');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [taskInProgress, setTaskInProgress] = useState<number | null>(null);
+  const [taskResults, setTaskResults] = useState<{[key: number]: string}>({});
 
   const tasks = [
     {
@@ -193,6 +195,82 @@ const Index = () => {
     setGeneratedPrompt(prompt);
   };
 
+  const startTask = async (taskId: number) => {
+    setTaskInProgress(taskId);
+    
+    // Симуляция выполнения задачи
+    const task = tasks.find(t => t.id === taskId);
+    const timeInMs = parseInt(task?.time.replace(' мин', '') || '15') * 100; // ускоренное время для демо
+    
+    // Имитация процесса с обновлениями
+    const steps = [
+      'Анализирую задачу...',
+      'Генерирую контент...',
+      'Оптимизирую результат...',
+      'Завершаю выполнение...'
+    ];
+    
+    for (let i = 0; i < steps.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, timeInMs / steps.length));
+      setTaskResults(prev => ({...prev, [taskId]: steps[i]}));
+    }
+    
+    // Финальный результат
+    const finalResults: {[key: number]: string} = {
+      1: `✨ ГОТОВО! Создано описание товара:
+"Революционный iPhone 15 Pro с титановым корпусом - ваш спутник в мире инноваций! ⚡
+
+🔥 Ключевые преимущества:
+• Титановый корпус - прочность космических технологий
+• Камера Pro класса - профессиональные фото без усилий  
+• A17 Pro чип - производительность нового уровня
+• 48MP основная камера - детализация, которая впечатляет
+
+Присоединитесь к 50+ млн пользователей, которые уже выбрали будущее. Закажите сейчас со скидкой 15%!"`,
+      
+      2: `📧 EMAIL-РАССЫЛКА СОЗДАНА:
+Тема: "Анна, ваша корзина скучает без вас! 🛒💔"
+
+Привет, Анна!
+
+Мы заметили, что вы оставили несколько отличных товаров в корзине. Не упустите их!
+
+🎯 Ваши избранные товары:
+• Беспроводные наушники Sony - только сегодня -25%
+• Умные часы Apple Watch - последние 3 шт.
+
+⏰ Успейте до завтра! Скидка действует ограниченное время.
+
+[ОФОРМИТЬ ЗАКАЗ СО СКИДКОЙ]
+
+С любовью, команда TechStore ❤️`,
+      
+      3: `💡 100 ИДЕЙ КОНТЕНТА СГЕНЕРИРОВАНО:
+
+📱 Посты для соцсетей:
+1. "Покажите рабочее место вашей мечты"
+2. "Опрос: Кофе или чай для продуктивности?"
+3. "История успеха: От 0 до первой продажи"
+4. "Лайфхак дня: Как сэкономить 2 часа"
+5. "За кулисами: День из жизни основателя"
+
+📊 Интерактив:
+6. "Угадайте: до/после нашего продукта"
+7. "Викторина: Насколько вы эксперт?"
+8. "Челлендж 30 дней с нашим продуктом"
+
+И еще 92 идеи готовы! 🚀`
+    };
+    
+    setTaskResults(prev => ({...prev, [taskId]: finalResults[taskId] || `✅ Задача "${task?.title}" выполнена успешно!`}));
+    setTaskInProgress(null);
+    
+    // Автоматически отмечаем задачу как выполненную
+    setTimeout(() => {
+      toggleTaskComplete(taskId);
+    }, 1000);
+  };
+
   const difficultyColors = {
     "Легко": "bg-green-100 text-green-800",
     "Средне": "bg-yellow-100 text-yellow-800", 
@@ -286,11 +364,64 @@ const Index = () => {
 
                     {activeTask === task.id && (
                       <div className="mt-4 p-3 bg-gray-50 rounded-md animate-accordion-down">
-                        <p className="text-sm font-medium mb-2">Пример результата:</p>
-                        <p className="text-sm italic text-gray-700">"{task.example}"</p>
-                        <Button size="sm" className="mt-3 w-full">
-                          Начать задачу
-                        </Button>
+                        {!taskResults[task.id] ? (
+                          <>
+                            <p className="text-sm font-medium mb-2">Пример результата:</p>
+                            <p className="text-sm italic text-gray-700">"{task.example}"</p>
+                            <Button 
+                              size="sm" 
+                              className="mt-3 w-full"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startTask(task.id);
+                              }}
+                              disabled={taskInProgress === task.id}
+                            >
+                              {taskInProgress === task.id ? (
+                                <div className="flex items-center gap-2">
+                                  <Icon name="Loader2" size={14} className="animate-spin" />
+                                  Выполняется...
+                                </div>
+                              ) : (
+                                'Начать задачу'
+                              )}
+                            </Button>
+                          </>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium">Результат выполнения:</p>
+                              <Badge className="bg-green-100 text-green-800">Готово</Badge>
+                            </div>
+                            <div className="bg-white p-3 rounded border text-sm whitespace-pre-line">
+                              {taskResults[task.id]}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(taskResults[task.id]);
+                                }}
+                              >
+                                <Icon name="Copy" size={12} className="mr-1" />
+                                Копировать
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  startTask(task.id);
+                                }}
+                              >
+                                <Icon name="RefreshCw" size={12} className="mr-1" />
+                                Пересоздать
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </CardContent>
